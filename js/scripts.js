@@ -5,7 +5,6 @@ const searchDiv =  document.querySelector('.search-container');
 async function getData(url) {
     const userResponse = await fetch(url);
     const userJSON = await userResponse.json();
-
     const users = userJSON.results.map(async user => user);
     return Promise.all(users);
 }
@@ -38,25 +37,40 @@ function formatDate (dateOfBirth){
     return newDate;
 }
 
-function generateModalWindow(data) {
+function generateModalWindow(data, index) {
     const divModal =  document.createElement('div');
     divModal.className = 'modal-container';
     divModal.innerHTML = `
     <div class="modal">
         <button type="button" id="modal-close-btn" class="modal-close-btn"><strong>X</strong></button>
         <div class="modal-info-container">
-            <img class="modal-img" src="${data.picture.large}" alt="profile picture">
-            <h3 id="${data.name.last + data.name.first}" class="modal-name cap">${data.name.first} ${data.name.last}</h3>
-            <p class="modal-text">${data.email}</p>
-            <p class="modal-text cap">${data.location.city}</p>
+            <img class="modal-img" src="${data[index].picture.large}" alt="profile picture">
+            <h3 id="${data[index].name.last + data[index].name.first}" class="modal-name cap">${data[index].name.first} ${data[index].name.last}</h3>
+            <p class="modal-text">${data[index].email}</p>
+            <p class="modal-text cap">${data[index].location.city}</p>
             <hr>
-            <p class="modal-text">${data.cell}</p>
-            <p class="modal-text">${data.location.street.number} ${data.location.street.name}, ${data.location.city}, ${data.location.state} ${data.location.postcode}</p>
-            <p class="modal-text">Birthday: ${formatDate(data.dob.date)}</p>
+            <p class="modal-text">${data[index].cell}</p>
+            <p class="modal-text">${data[index].location.street.number} ${data[index].location.street.name}, ${data[index].location.city}, ${data[index].location.state} ${data[index].location.postcode}</p>
+            <p class="modal-text">Birthday: ${formatDate(data[index].dob.date)}</p>
         </div>
+    </div>
+    <div class="modal-btn-container">
+        <button type="button" id="modal-prev" class="modal-prev btn">Prev</button>
+        <button type="button" id="modal-next" class="modal-next btn">Next</button>
     </div>
     `;
     document.querySelector('body').appendChild(divModal);
+    const nextButton = document.getElementById('modal-next');
+    nextButton.addEventListener('click', () => {
+        divModal.remove();
+        document.querySelector('body').appendChild(generateModalWindow(data, (parseInt(index) + 1)));
+        index += 1;
+    });
+    const closeButton =  document.getElementById('modal-close-btn');
+    closeButton.addEventListener('click', (e)=> {
+        divModal.remove();
+    });
+    return divModal;
 }
 
 function generateSearchBar(){
@@ -100,14 +114,9 @@ async function execute () {
     });
     const cardDiv = document.querySelectorAll(".card");
     cardDiv.forEach(item => {
-        item.addEventListener('click', async(event) => {
-        generateModalWindow(userProfiles[event.target.closest('.card').dataset.index]);
-        const closeButton =  document.getElementById('modal-close-btn');
-        const divModal = document.querySelector('.modal-container');
-        closeButton.addEventListener('click', (e)=> {
-            divModal.remove();
-        });
-        }) 
-    })
+        item.addEventListener('click', (event) => {
+            generateModalWindow(userProfiles, event.target.closest('.card').dataset.index);
+        });   
+    });
 };
 execute();
